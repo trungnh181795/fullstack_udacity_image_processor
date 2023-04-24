@@ -1,5 +1,6 @@
 import * as supertest from 'supertest'
 import app from '../index'
+import 'jasmine'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { scaledImagesPath } from '../utils'
@@ -19,12 +20,17 @@ const testResolution = {
         height: 0
     }
 }
+
 const testResizeQueryParameters = {
     valid: `filename=${inputTestFileName}&width=${testResolution.valid.width}&height=${testResolution.valid.height}`,
     invalid: `filename=${inputTestFileName}&width=${testResolution.invalid.width}&height=${testResolution.invalid.height}`
 }
-const resultTestFileName = `${inputTestFileName}_${testResolution.valid.width}x${testResolution.valid.height}.png`
 const testInvalidEndpoint = 'test'
+const getResultFileName = (
+    testFileName: string,
+    width: string | number,
+    height: string | number
+) => `${testFileName}_${width}x${height}.png`
 
 describe('Endpoints test reponses: ', (): void => {
     describe('endpoint: /', (): void => {
@@ -81,14 +87,19 @@ describe('Endpoints test reponses: ', (): void => {
 })
 
 afterAll(async (): Promise<void> => {
-    const resizedImagePath: string = path.resolve(
+    const resultTestFileName = getResultFileName(
+        inputTestFileName.valid,
+        testResolution.valid.width,
+        testResolution.valid.height
+    )
+    const scaledImagePath: string = path.resolve(
         scaledImagesPath,
         resultTestFileName
     )
 
     try {
-        await fs.access(resizedImagePath)
-        fs.unlink(resizedImagePath)
+        await fs.access(scaledImagePath)
+        fs.unlink(scaledImagePath)
     } catch (err) {
         throw new Error(err)
     }
