@@ -7,7 +7,7 @@ routes.use('/api/images', imagesRoutes);
 
 routes.get(
   '/',
-  (response: express.Response): void => {
+  (request: express.Request, response: express.Response): void => {
     response.send(
       'Hello World'
     );

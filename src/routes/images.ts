@@ -23,15 +23,11 @@ imagesRoutes.get(
             return
         }
         
-        console.log('got here')
-
         const hasAvailableScaledImage = await isScaledImageAvailable(
             request.query
         )
         let createRes: ProcessResponse
         
-        console.log('got here 1')
-
         if (!hasAvailableScaledImage) {
             createRes = await createScaledImage(request.query)
         }
