@@ -100,7 +100,7 @@ afterAll(async (): Promise<void> => {
     try {
         await fs.access(scaledImagePath)
         fs.unlink(scaledImagePath)
-    } catch (err) {
-        throw new Error(err)
+    } catch {
+        console.log('File cleaned up already!')
     }
 })

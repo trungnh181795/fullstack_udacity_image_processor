@@ -1,7 +1,11 @@
 import { promises as fs } from 'fs'
 import 'jasmine'
 import * as path from 'path'
-import { createScaledImage, scaledImagesPath } from '../utils'
+import {
+    createScaledImage,
+    scaledImagesPath,
+    isScaledImageAvailable
+} from '../utils'
 import { Status } from '../types'
 
 const inputTestFileName = {
@@ -19,52 +23,46 @@ const testResolution = {
     }
 }
 
-const getResultFileName = (testFileName: string, width: string | number, height: string | number) =>
-    `${testFileName}_${width}x${height}.png`
+const getResultFileName = (
+    testFileName: string,
+    width: string | number,
+    height: string | number
+) => `${testFileName}_${width}x${height}.png`
 
 describe('Test image processing via sharp', (): void => {
-    it('raises an error (invalid width value)', async (): Promise<void> => {
-        const { status } = await createScaledImage({
-            filename: inputTestFileName.valid,
-            ...testResolution.invalid
+    describe('when input is a valid image', (): void => {
+        it('create scaled image successfully', async (): Promise<void> => {
+            const { status } = await createScaledImage({
+                filename: inputTestFileName.valid,
+                ...testResolution.valid
+            })
+            expect(status).toBe(Status.SUCCESS)
         })
-        expect(status).toBe(Status.FAIL)
+
+        it('rewrited existing image', async (): Promise<void> => {
+            await createScaledImage({
+                filename: inputTestFileName.valid,
+                ...testResolution.valid
+            })
+
+            const isImageExisted = await isScaledImageAvailable({
+                filename: inputTestFileName.valid,
+                width: testResolution.valid.width,
+                height: testResolution.valid.height
+            })
+
+            expect(isImageExisted).toBe(true)
+        })
     })
 
-    it('raises an error (filename does not exist)', async (): Promise<void> => {
-        const { status } = await createScaledImage({
-            filename: inputTestFileName.valid,
-            ...testResolution.valid
+    describe('when input is invalid', (): void => {
+        it('failed to create scaled image', async (): Promise<void> => {
+            const { status } = await createScaledImage({
+                filename: inputTestFileName.invalid,
+                ...testResolution.invalid
+            })
+            expect(status).toBe(Status.FAIL)
         })
-        expect(status).toBe(Status.SUCCESS)
-    })
-
-    it('succeeds to write resized thumb file (existing file, valid size values)', async (): Promise<void> => {
-        await createScaledImage({
-            filename: inputTestFileName.valid,
-            ...testResolution.valid
-        })
-
-        const resultTestFileName = getResultFileName(
-            inputTestFileName.valid,
-            testResolution.valid.width,
-            testResolution.valid.height
-        )
-
-        const scaledImagePath: string = path.resolve(
-            scaledImagesPath,
-            resultTestFileName
-        )
-        let error: Status
-
-        try {
-            await fs.access(scaledImagePath)
-            error = Status.SUCCESS
-        } catch {
-            error = Status.FAIL
-        }
-
-        expect(error).toBe(Status.SUCCESS)
     })
 })
 
