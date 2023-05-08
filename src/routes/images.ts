@@ -26,15 +26,9 @@ imagesRoutes.get(
         const hasAvailableScaledImage = await isScaledImageAvailable(
             request.query
         )
-        let createRes: ProcessResponse
         
         if (!hasAvailableScaledImage) {
-            createRes = await createScaledImage(request.query)
-        }
-
-        if (createRes.status === Status.FAIL) {
-            response.send(createRes.message)
-            return
+           await createScaledImage(request.query)
         }
 
         const path: null | string = await getImagePath(request.query)
